@@ -1,0 +1,69 @@
+---
+title: Privacy Policy
+description: How {{site_name}} handles data, analytics, and your privacy.
+---
+
+# Privacy Policy
+
+_Last updated: {{last_updated}}_
+
+This Privacy Policy describes how **{{site_name}}** ({{site_url}}) handles information when you use the site. {{site_name}} is operated independently as part of the Vertex Network.
+
+## What we collect
+
+**By default, nothing.** {{site_name}} is a tool, not an account-based service. You can use the entire site without signing in, providing an email, or otherwise identifying yourself.
+
+The site uses the following limited data flows, each disclosed below:
+
+### Analytics
+
+- **Vercel Analytics** — anonymous, cookieless page-view counts. No cross-site tracking. Vercel's privacy policy: https://vercel.com/legal/privacy-policy
+- **Microsoft Clarity** — session recordings and heatmaps. Loads **only after you accept the cookie banner**. Microsoft's privacy notice: https://privacy.microsoft.com
+
+### Optional services {{#if email_enabled}}
+
+- **Resend** (email capture) — if you choose to subscribe to updates, your email address is forwarded to Resend, which manages our mailing list. Resend's privacy policy: https://resend.com/legal/privacy-policy
+
+{{/if}}
+
+{{#if pro_enabled}}
+
+- **Stripe** (payments) — if you upgrade to a paid tier, payment processing is handled by Stripe. {{site_name}} never sees your full card number. Stripe's privacy policy: https://stripe.com/privacy
+
+{{/if}}
+
+{{#if ads_enabled}}
+
+### Advertising
+
+- **{{ad_provider}}** — third-party ads may be served on this site. The ad provider may set cookies for ad personalization. You can opt out of personalized advertising at https://www.aboutads.info/choices.
+
+{{/if}}
+
+## What we don't do
+
+- **No selling data.** We don't sell, lease, or transfer information about visitors to anyone.
+- **No cross-site tracking on tool inputs.** Whatever you enter into a calculator or generator stays in your browser unless you explicitly share or save it.
+- **No fingerprinting.** No device fingerprinting libraries; no canvas/font fingerprinting.
+
+## Cookies
+
+{{site_name}} uses cookies only for:
+
+1. Remembering your cookie-banner choice (so we don't ask you again).
+2. Loading Microsoft Clarity (only if you accepted).
+3. Remembering preferences you explicitly set (e.g., theme, saved scenarios) — stored in `localStorage`, not cookies.
+
+## Your rights
+
+You can clear all site data at any time via your browser's site settings. There is no account to delete.
+
+If you have a privacy question, email **{{contact_email}}**.
+
+## Changes to this policy
+
+If we materially change how data is handled, we'll update this page and the "Last updated" date above. Substantive changes will also be noted in the [/changelog]({{site_url}}/changelog).
+
+---
+
+_{{site_name}} is part of the Vertex Network. Each site in the network publishes its own privacy policy._

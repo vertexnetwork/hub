@@ -1,0 +1,59 @@
+name: Propagate to spokes
+
+# Fires repository_dispatch at every spoke listed in config/spokes.json
+# whenever a synced file changes on main. Spokes pick it up via their
+# templates/spoke/.github/workflows/sync-from-hub.yml listener.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "config/network.json"
+      - "config/ai-bots.json"
+      - "config/env.template.json"
+      - "crawler/**"
+      - "content/**"
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Why is this manual fan-out being triggered?"
+        required: false
+        default: "manual sync"
+
+permissions:
+  contents: read
+
+jobs:
+  build-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      spokes: ${{ steps.read.outputs.spokes }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: read
+        run: |
+          set -eu
+          echo "spokes=$(jq -c '[.spokes[].repo]' config/spokes.json)" >> "$GITHUB_OUTPUT"
+
+  fanout:
+    needs: build-matrix
+    runs-on: ubuntu-latest
+    if: ${{ needs.build-matrix.outputs.spokes != '[]' }}
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        repo: ${{ fromJSON(needs.build-matrix.outputs.spokes) }}
+    steps:
+      - name: Dispatch sync to ${{ matrix.repo }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.HUB_DISPATCH_TOKEN }}
+          repository: ${{ matrix.repo }}
+          event-type: vertex-hub-sync
+          client-payload: |
+            {
+              "sha":   "${{ github.sha }}",
+              "ref":   "${{ github.ref }}",
+              "actor": "${{ github.actor }}"
+            }

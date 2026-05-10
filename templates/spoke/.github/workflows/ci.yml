@@ -1,0 +1,13 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    uses: ThatMovieGuyOriginal/vertex-network-hub/.github/workflows/spoke-ci.yml@v1
+    with:
+      node-version: "22"
+      run-e2e: false

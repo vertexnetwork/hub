@@ -1,0 +1,11 @@
+{
+  "version": "2026.05.10",
+  "comment": "List of spoke GitHub repos that receive repository_dispatch events. EDIT the 'repo' fields below to match your actual GitHub repo paths in <owner>/<name> form.",
+  "spokes": [
+    { "slug": "captionsnap",  "repo": "ThatMovieGuyOriginal/captionsnap" },
+    { "slug": "etsymargin",   "repo": "ThatMovieGuyOriginal/etsymargin" },
+    { "slug": "kdpcover",     "repo": "ThatMovieGuyOriginal/kdpcover" },
+    { "slug": "shopifont",    "repo": "ThatMovieGuyOriginal/shopifont" },
+    { "slug": "tokenmath",    "repo": "ThatMovieGuyOriginal/tokenmath" }
+  ]
+}

@@ -1,0 +1,9 @@
+# app-ads.txt — Vertex Network
+# Synced from vertex-network-hub/crawler/app-ads.txt
+# IAB app-ads.txt v1.1: https://iabtechlab.com/app-ads-txt
+# Even sites without mobile apps should serve a stub for crawler compatibility.
+#
+# Add app-ad partner declarations below.
+#
+# Example:
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

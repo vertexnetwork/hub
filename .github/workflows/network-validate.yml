@@ -1,0 +1,60 @@
+name: Validate network config
+
+on:
+  pull_request:
+    paths:
+      - "config/**"
+  push:
+    branches: [main]
+    paths:
+      - "config/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: All config JSON parses
+        run: |
+          set -eu
+          for f in config/*.json; do
+            jq empty "$f" || { echo "Invalid JSON: $f"; exit 1; }
+          done
+
+      - name: network.json — every site has required fields
+        run: |
+          jq -e '
+            .sites
+            | all(
+                has("slug") and has("name") and has("domain")
+                and has("url") and has("tagline") and has("description")
+                and has("status")
+              )
+          ' config/network.json
+
+      - name: network.json — slugs unique
+        run: |
+          test "$(jq '.sites | length' config/network.json)" \
+             = "$(jq '.sites | map(.slug) | unique | length' config/network.json)"
+
+      - name: network.json — domains unique
+        run: |
+          test "$(jq '.sites | length' config/network.json)" \
+             = "$(jq '.sites | map(.domain) | unique | length' config/network.json)"
+
+      - name: network.json — status values valid
+        run: |
+          jq -e '.sites | all(.status == "live" or .status == "soon")' config/network.json
+
+      - name: network.json — urls have no trailing slash
+        run: |
+          ! jq -re '.sites[].url' config/network.json | grep -E '/$'
+
+      - name: spokes.json — repo paths are owner/name shape
+        run: |
+          jq -e '.spokes | all(.repo | test("^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$"))' config/spokes.json

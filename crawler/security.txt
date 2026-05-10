@@ -1,0 +1,13 @@
+# security.txt — Vertex Network template
+# Synced from vertex-network-hub/crawler/security.txt
+# RFC 9116: https://datatracker.ietf.org/doc/html/rfc9116
+#
+# Each spoke's app/.well-known/security.txt route substitutes:
+#   {{contact}}     ← siteConfig.security.contact (e.g., "mailto:security@example.com")
+#   {{expires}}     ← siteConfig.security.expires (ISO 8601, ≤1 year out)
+#   {{site_url}}    ← siteConfig.url
+
+Contact: {{contact}}
+Expires: {{expires}}
+Preferred-Languages: en
+Canonical: {{site_url}}/.well-known/security.txt

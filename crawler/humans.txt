@@ -1,0 +1,16 @@
+# humanstxt.org — credits + tools
+# Synced from vertex-network-hub/crawler/humans.txt
+# Each spoke substitutes {{site_url}} and {{last_update}}.
+
+/* TEAM */
+Maintainer: ThatMovieGuy
+Site: {{site_url}}
+
+/* THANKS */
+Vertex Network — https://github.com/ThatMovieGuyOriginal/vertex-network-hub
+
+/* SITE */
+Last update: {{last_update}}
+Standards: HTML5, CSS3
+Components: Next.js, React, Tailwind v4
+Software: Vercel, GitHub

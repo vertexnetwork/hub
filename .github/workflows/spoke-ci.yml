@@ -1,0 +1,65 @@
+name: Spoke CI (reusable)
+
+# Reusable workflow consumed by every spoke. Spokes call this via:
+#
+#   jobs:
+#     ci:
+#       uses: ThatMovieGuyOriginal/vertex-network-hub/.github/workflows/spoke-ci.yml@v1
+#       with:
+#         node-version: "22"
+#
+# Pin to @v1 so breaking changes don't auto-roll spokes.
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: false
+        type: string
+        default: "22"
+      pnpm-version:
+        required: false
+        type: string
+        default: "9"
+      run-e2e:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ inputs.pnpm-version }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browsers
+        if: ${{ inputs.run-e2e }}
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E tests
+        if: ${{ inputs.run-e2e }}
+        run: pnpm test:e2e
