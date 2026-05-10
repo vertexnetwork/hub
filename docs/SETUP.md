@@ -52,17 +52,13 @@ If any of those don't match your actual repo names, fix them. Then commit + push
 
 ---
 
-## Step 4 — Tag a `v1` release
+## Step 4 — `v1` tag (already done)
 
-Spokes will reference the reusable workflow as `@v1`. Without a `v1` tag this won't resolve.
+The `v1` tag is already in place — spokes can reference `@v1` immediately. Verify at https://github.com/ThatMovieGuyOriginal/vertex-network-hub/tags.
 
-```powershell
-# from the vertex-network-hub directory
-git tag v1
-git push origin v1
-```
-
-You'll re-tag `v1` later only if you make a breaking change to `spoke-ci.yml`. Bug-fix changes can move the `v1` tag (force-push the tag); breaking changes get a `v2`.
+Later, when you change `spoke-ci.yml`:
+- **Bug fixes / additive changes** → force-move the `v1` tag: `git tag -f v1 && git push -f origin v1`
+- **Breaking changes** (input renames, behavior changes) → cut a fresh `v2`, migrate spokes one at a time.
 
 ---
 
