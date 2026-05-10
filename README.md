@@ -12,6 +12,13 @@ Open a spoke project locally → paste [`docs/_canonical-audit-prompt.md`](docs/
 
 If you want hub edits (like a new entry in `network.json`) to land in a spoke automatically, copy [`templates/spoke/.github/workflows/sync-from-hub.yml`](templates/spoke/.github/workflows/sync-from-hub.yml) into that spoke's `.github/workflows/`. One file. The spoke now opens auto-merge PRs whenever the hub changes.
 
+**By default, only two files are ever synced into a spoke** (the network-wide ones):
+
+- `public/network.json` — the registry that drives the `/network` page
+- `public/ai-bots.json` — the AI crawler allowlist used by `robots.ts`
+
+Per-spoke files (`ads.txt`, `app-ads.txt`, `humans.txt`, `security.txt`, anything in `siteConfig.ts`, brand assets, product code) are **never overwritten** — they're listed as opt-in commented `curl` lines in the sync workflow if you ever want them. Adding a new site to the hub touches `/network` on every spoke and nothing else.
+
 Most spokes use both: audit first, install the sync workflow only after the audit confirms it's worth it.
 
 ## What's in here

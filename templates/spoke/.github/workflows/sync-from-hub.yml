@@ -1,7 +1,17 @@
 name: Sync from vertex-network-hub
 
-# Listens for repository_dispatch from the hub and pulls updated config files.
+# Listens for repository_dispatch from the hub and pulls updated network-wide files.
 # Also runs daily on cron as a belt-and-suspenders safety net in case a dispatch is missed.
+#
+# WHAT GETS SYNCED BY DEFAULT (safe — these are network-wide, identical on every spoke):
+#   public/network.json   — registry of all sites; drives /network page
+#   public/ai-bots.json   — AI crawler allowlist for robots.ts
+#
+# WHAT IS NOT SYNCED (per-spoke; the hub never overwrites these):
+#   public/ads.txt, public/app-ads.txt — each site's AdSense/Mediavine publisher IDs differ
+#   public/humans.txt                  — each site has its own credits
+#   public/.well-known/security.txt    — each site has its own security contact
+#   any product code, brand assets, or siteConfig
 #
 # REQUIRED: this spoke must be listed in vertex-network-hub/config/spokes.json
 # and the hub must have HUB_DISPATCH_TOKEN configured.
@@ -26,15 +36,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Pull synced files from hub
+      - name: Pull network-wide files from hub
         run: |
           set -eu
-          mkdir -p public/.well-known
+          mkdir -p public
+          # Network-wide — always safe to overwrite; identical on every spoke.
           curl -fsSL "$HUB_RAW/config/network.json"   -o public/network.json
           curl -fsSL "$HUB_RAW/config/ai-bots.json"   -o public/ai-bots.json
-          curl -fsSL "$HUB_RAW/crawler/ads.txt"       -o public/ads.txt
-          curl -fsSL "$HUB_RAW/crawler/app-ads.txt"   -o public/app-ads.txt
-          curl -fsSL "$HUB_RAW/crawler/humans.txt"    -o public/humans.txt
+
+          # OPT-IN: uncomment a line below ONLY if this spoke wants the hub's
+          # version of that file to overwrite its local copy on every sync.
+          # Most spokes should leave these commented and own their own values.
+          #
+          # curl -fsSL "$HUB_RAW/crawler/ads.txt"       -o public/ads.txt
+          # curl -fsSL "$HUB_RAW/crawler/app-ads.txt"   -o public/app-ads.txt
+          # curl -fsSL "$HUB_RAW/crawler/humans.txt"    -o public/humans.txt
 
       - name: Open sync PR if anything changed
         uses: peter-evans/create-pull-request@v6

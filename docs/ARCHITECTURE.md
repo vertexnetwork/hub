@@ -32,9 +32,7 @@ In one diagram:
 │ curl raw.github →       │           │ │          │
 │   public/network.json   │           │ │          │
 │   public/ai-bots.json   │           │ │          │
-│   public/ads.txt        │           │ │          │
-│   public/app-ads.txt    │           │ │          │
-│   public/humans.txt     │           │ │          │
+│   (NETWORK-WIDE ONLY)   │           │ │          │
 │        ↓                │           │ │          │
 │ open auto-merge PR      │           │ │          │
 │        ↓                │           │ │          │
@@ -91,13 +89,29 @@ It can also be triggered manually from the Actions tab via `workflow_dispatch`.
 
 Spokes have a daily 06:00 UTC cron in `sync-from-hub.yml` as a belt-and-suspenders safety net in case a dispatch is missed.
 
-## What stays in the spoke (not synced)
+## What gets synced — and what doesn't
 
-- `siteConfig.ts` — per-site brand, colors, nav.
-- `app/icon.svg` and `public/og-default.png` — brand mark + OG fallback.
-- All product code (calculators, generators, pSEO content).
-- All env vars (analytics IDs, ad provider IDs, Stripe keys).
-- The hero `app/page.tsx`.
+The defaults are **maximally conservative**: only files that are genuinely identical on every spoke get pulled. Everything else stays under the spoke's control.
+
+**Synced by default (overwritten on every hub propagation):**
+
+| Hub source | Spoke destination |
+|---|---|
+| `config/network.json` | `public/network.json` |
+| `config/ai-bots.json` | `public/ai-bots.json` |
+
+**NOT synced (the spoke owns these; hub never touches them):**
+
+- `public/ads.txt`, `public/app-ads.txt` — different AdSense/Mediavine publisher per site
+- `public/humans.txt` — per-site credits
+- `public/.well-known/security.txt` — per-site security contact
+- `siteConfig.ts` — per-site brand, colors, nav, theme
+- `app/icon.svg`, `public/og-default.png` — brand mark + OG fallback
+- All product code (calculators, generators, pSEO content)
+- All env vars (analytics IDs, ad provider IDs, Stripe keys, etc.)
+- The hero `app/page.tsx`
+
+**Opt-in to additional syncing:** if a particular spoke has no per-site customization on `ads.txt`/`app-ads.txt`/`humans.txt` and wants the hub's version, uncomment the corresponding `curl` line in that spoke's `sync-from-hub.yml`. This is a per-spoke choice — uncommenting in one spoke doesn't affect others.
 
 ## Versioning the reusable workflow
 

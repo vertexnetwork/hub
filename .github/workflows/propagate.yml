@@ -7,13 +7,13 @@ name: Propagate to spokes
 on:
   push:
     branches: [main]
+    # Only fire fan-out when network-wide files change. Per-spoke content
+    # (crawler/, content/legal/) is reference-only and not synced; changing
+    # those should not dispatch to spokes.
     paths:
       - "config/network.json"
       - "config/ai-bots.json"
       - "config/spokes.json"
-      - "config/env.template.json"
-      - "crawler/**"
-      - "content/**"
   workflow_dispatch:
     inputs:
       reason:
