@@ -10,6 +10,7 @@ on:
     paths:
       - "config/network.json"
       - "config/ai-bots.json"
+      - "config/spokes.json"
       - "config/env.template.json"
       - "crawler/**"
       - "content/**"
