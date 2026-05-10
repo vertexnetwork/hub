@@ -1,16 +1,10 @@
 # `templates/spoke/`
 
-Files each spoke repo copies in from the hub. Drop them into the spoke's repo root, preserving the directory structure (so `.github/workflows/ci.yml` lands at `<spoke>/.github/workflows/ci.yml`).
+Two **optional** workflow files for spokes that want hub automation. **Most spokes don't need to install anything from this folder** — the audit prompt at [`docs/_canonical-audit-prompt.md`](../../docs/_canonical-audit-prompt.md) reads the hub directly over the network and tells you what (if anything) to add.
 
-| File | Where it lands in the spoke |
-|---|---|
-| `.github/workflows/ci.yml` | `<spoke>/.github/workflows/ci.yml` (calls hub reusable workflow) |
-| `.github/workflows/sync-from-hub.yml` | `<spoke>/.github/workflows/sync-from-hub.yml` (listens for hub dispatches) |
-| `.env.example` | `<spoke>/.env.example` |
-| `.gitignore` | `<spoke>/.gitignore` |
-| `.gitattributes` | `<spoke>/.gitattributes` |
-| `.nvmrc` | `<spoke>/.nvmrc` |
-| `lighthouserc.json` | `<spoke>/lighthouserc.json` |
-| `vercel.json` | `<spoke>/vercel.json` |
+| File | When to install it | What it does |
+|---|---|---|
+| `.github/workflows/sync-from-hub.yml` | Only if you want hub changes (e.g., new sites added to `network.json`) to land in this spoke automatically. | Listens for `repository_dispatch` events from the hub and opens an auto-merge PR with the changed files. |
+| `.github/workflows/ci.yml` | Only if you want to consume the hub's reusable CI workflow. | Calls `ThatMovieGuyOriginal/vertex-network-hub/.github/workflows/spoke-ci.yml@v1`. Saves you from maintaining a CI pipeline per spoke. |
 
-After copying, commit and push to the spoke. The first hub propagation event after the spoke's `sync-from-hub.yml` lands will fan in `network.json`, `ai-bots.json`, `ads.txt`, `app-ads.txt`, and `humans.txt`.
+If you're not sure: **skip this folder entirely**. Run the audit. Decide later. The hub still works — you just won't get auto-sync of `network.json` etc.; you'd update those by hand or via your own automation.

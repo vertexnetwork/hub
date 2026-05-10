@@ -44,6 +44,14 @@ In one diagram:
 └──────────┘              └──────────┘ └──────────┘
 ```
 
+## Two consumption models for spokes
+
+**Model A — audit reference (zero install).** Spokes never copy hub files in. The audit prompt at [`_canonical-audit-prompt.md`](_canonical-audit-prompt.md) tells Claude to fetch the hub remotely over WebFetch / raw GitHub URLs, then grade the local spoke against what it finds. This is the primary loop and works for any project (existing, in-progress, or empty).
+
+**Model B — auto-sync (one-file install).** A spoke that wants hub edits to land automatically installs [`templates/spoke/.github/workflows/sync-from-hub.yml`](../templates/spoke/.github/workflows/sync-from-hub.yml). On hub push, it pulls updated `network.json`/`ai-bots.json`/`ads.txt`/etc. and opens an auto-merge PR. That's the only file the spoke needs.
+
+Most spokes start with Model A, then add Model B for individual files (just `network.json`, say) once the audit confirms the value.
+
 ## Why this shape
 
 **Hub-and-spoke beats monorepo for indie networks.** Each site keeps its own deploy cadence, its own analytics IDs, its own incident blast radius. But the network registry, ads.txt, AI-bot allowlist, and legal boilerplate have one source of truth. Edit once, propagates everywhere.
@@ -64,7 +72,7 @@ In one diagram:
 | The "what ties them together" prose | `content/network-philosophy.mdx` |
 | Hub's own CI for fan-out + JSON validation | `.github/workflows/propagate.yml`, `network-validate.yml` |
 | The reusable workflow spokes consume | `.github/workflows/spoke-ci.yml` (referenced as `@v1`) |
-| Files spokes copy in (workflows, vercel.json, etc.) | `templates/spoke/` |
+| Two **optional** workflow files spokes can install (sync listener + CI stub) | `templates/spoke/` |
 | Spec, audit prompt, synthesis | `docs/_*.md` |
 | One-time setup runbook | `docs/SETUP.md` (read first) |
 | Per-spoke launch runbook | `docs/SITE_LAUNCH_CHECKLIST.md` |

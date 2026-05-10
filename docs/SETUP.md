@@ -1,132 +1,77 @@
-# SETUP — what you (Josh) actually need to do
+# SETUP
 
-**Read this top-to-bottom in order.** Skip nothing. Each step is small.
+The hub is already built and live. There's almost nothing to configure.
 
----
+## How you'll actually use this
 
-## Step 1 — Create a GitHub Personal Access Token (PAT)
+For each spoke (`tokenmath`, `shopifont`, `kdpcover`, `etsymargin`, `captionsnap`, or any future site):
 
-The hub needs permission to fire `repository_dispatch` events at every spoke. That requires a PAT.
+1. Open that project's folder locally in a fresh Claude Code session.
+2. Open [`docs/_canonical-audit-prompt.md`](_canonical-audit-prompt.md) in this hub repo's GitHub UI.
+3. Copy everything below the `---` line.
+4. Paste it as your first message to Claude in the spoke session.
+5. Claude fetches this hub remotely (no files copied into the spoke), reads the spoke locally, produces an audit report and saves it to `vertex-network-audits/<spoke>.md`.
 
-1. Go to https://github.com/settings/personal-access-tokens/new
-2. **Token name**: `vertex-hub-dispatch`
-3. **Expiration**: 1 year (set a calendar reminder to rotate)
-4. **Resource owner**: your account (`ThatMovieGuyOriginal`)
-5. **Repository access**: **Only select repositories** — pick all 5 spoke repos (`captionsnap`, `etsymargin`, `kdpcover`, `shopifont`, `tokenmath`).
-6. **Permissions** → **Repository permissions** →
-   - **Contents**: Read and write
-   - **Metadata**: Read-only (auto-selected)
-   - **Pull requests**: Read and write
-   - **Actions**: Read and write
-7. Click **Generate token**. **Copy the token** — you won't see it again.
-
-> If a fine-grained PAT feels fiddly, a classic PAT with `repo` and `workflow` scopes works too. Fine-grained is more locked-down and recommended.
+That's the whole loop for the audit half. Spokes get **zero hub files installed** for the audit. Everything Claude needs is read over the network.
 
 ---
 
-## Step 2 — Add the PAT as a hub secret
+## Optional: enable auto-sync (only when you want it)
 
-1. Go to https://github.com/ThatMovieGuyOriginal/vertex-network-hub/settings/secrets/actions
-2. Click **New repository secret**
-3. **Name**: `HUB_DISPATCH_TOKEN`
-4. **Secret**: paste the PAT from Step 1
-5. **Add secret**
+The audit will tell you what each spoke is missing — including whether you want hub-managed files (like `network.json`, `ads.txt`) to land in the spoke automatically.
 
----
+If yes for a given spoke:
 
-## Step 3 — Verify `config/spokes.json` has the right repo names
+1. Set `HUB_DISPATCH_TOKEN` once on the hub (steps below) — one-time, covers all spokes.
+2. Copy [`templates/spoke/.github/workflows/sync-from-hub.yml`](../templates/spoke/.github/workflows/sync-from-hub.yml) into that spoke's `.github/workflows/`. **One file. That's the entire spoke install.**
+3. Push the spoke. Done — it's now in the sync loop.
 
-Open [`config/spokes.json`](../config/spokes.json). Each `repo` should be `<your-github-username>/<actual-repo-name>`. Edit any that are wrong.
+If no: skip everything below. The hub still serves as the spec source for audits.
 
-The defaults assume:
+### Setting `HUB_DISPATCH_TOKEN` (one-time, ~3 minutes)
 
-```json
-ThatMovieGuyOriginal/captionsnap
-ThatMovieGuyOriginal/etsymargin
-ThatMovieGuyOriginal/kdpcover
-ThatMovieGuyOriginal/shopifont
-ThatMovieGuyOriginal/tokenmath
-```
+The hub needs a Personal Access Token to fire `repository_dispatch` events at spokes. Without this, only audits work; auto-sync doesn't.
 
-If any of those don't match your actual repo names, fix them. Then commit + push.
+1. **Create the PAT** → https://github.com/settings/personal-access-tokens/new
+   - Name: `vertex-hub-dispatch`
+   - Expiration: 1 year
+   - Repository access: "Only select repositories" → tick the spoke repos you want syncable
+   - Repository permissions (set to **Read and write**): Contents, Pull requests, Actions
+   - Generate → copy the token
+2. **Save the token as a hub secret** → https://github.com/ThatMovieGuyOriginal/vertex-network-hub/settings/secrets/actions
+   - New repository secret
+   - Name: `HUB_DISPATCH_TOKEN`
+   - Secret: paste the PAT
+   - Save
+3. **Verify `config/spokes.json`** lists the right repos under `<owner>/<name>` form. Edit if any are wrong.
 
----
+### Testing the auto-sync loop (after at least one spoke has `sync-from-hub.yml`)
 
-## Step 4 — `v1` tag (already done)
+1. Edit `config/network.json` in this hub — add a `"status": "soon"` test entry.
+2. Commit + push to `main`.
+3. Watch hub Actions — `Propagate to spokes` runs, dispatches events.
+4. Watch the spoke's Actions — `Sync from vertex-network-hub` runs, opens a PR.
+5. PR diff should show `public/network.json` updated. Don't merge — go back to hub, remove the test entry, push again.
 
-The `v1` tag is already in place — spokes can reference `@v1` immediately. Verify at https://github.com/ThatMovieGuyOriginal/vertex-network-hub/tags.
-
-Later, when you change `spoke-ci.yml`:
-- **Bug fixes / additive changes** → force-move the `v1` tag: `git tag -f v1 && git push -f origin v1`
-- **Breaking changes** (input renames, behavior changes) → cut a fresh `v2`, migrate spokes one at a time.
-
----
-
-## Step 5 — Install `sync-from-hub.yml` into one spoke first (pilot)
-
-Pick **tokenmath** as the pilot (smallest divergence per the synthesis report).
-
-1. Open the tokenmath repo locally.
-2. Copy this file:
-   - From: `vertex-network-hub/templates/spoke/.github/workflows/sync-from-hub.yml`
-   - To:   `tokenmath/.github/workflows/sync-from-hub.yml`
-3. Commit + push to tokenmath's `main`.
-
-That's it for the spoke side. The workflow will now listen for hub dispatches.
+If steps 1–5 work, auto-sync is live.
 
 ---
 
-## Step 6 — Test the loop
+## What you do NOT need to do
 
-1. In `vertex-network-hub`, open `config/network.json`.
-2. Add a **`"status": "soon"`** test entry near the bottom of `sites[]` (any plausible-looking placeholder is fine).
-3. Commit + push to `main`.
-4. Go to https://github.com/ThatMovieGuyOriginal/vertex-network-hub/actions — you should see **Propagate to spokes** running.
-5. Within a minute, go to https://github.com/ThatMovieGuyOriginal/tokenmath/actions — you should see **Sync from vertex-network-hub** running.
-6. When that finishes, a PR titled `chore: sync from vertex-network-hub` should appear at https://github.com/ThatMovieGuyOriginal/tokenmath/pulls
-7. The PR's diff should show `public/network.json` changing to include your test entry.
-8. **Don't merge it** — go back to the hub, remove the test entry, push again. The PR should auto-close (or close it manually) once a clean sync replaces it.
-
-If all 8 steps work, the loop is live.
-
----
-
-## Step 7 — Roll out to the other 4 spokes
-
-Repeat **Step 5** for `captionsnap`, `etsymargin`, `kdpcover`, `shopifont`. Just copy `sync-from-hub.yml` into each spoke's `.github/workflows/`.
-
-**Note**: each spoke needs a `public/` directory for the synced files to land in. If a spoke doesn't have one yet, create an empty `public/.gitkeep`.
-
----
-
-## Step 8 — (Later, when ready) Re-audit each spoke against the new spec
-
-For each spoke:
-
-1. Open it in Claude Code.
-2. Paste [`docs/_canonical-audit-prompt.md`](_canonical-audit-prompt.md) verbatim, telling Claude where the spec lives (this hub's `docs/_scaffold-spec.md`, or copy that file into the spoke first).
-3. Save the output back to `vertex-network-audits/<spoke>.md`, overwriting the old per-project audit.
-4. Compare old vs new — that's your migration backlog.
-
-Don't tackle migration until at least 3 spokes are re-audited. The cross-audit P0 union is what you actually want to fix.
-
----
-
-## What you do NOT need to do (yet)
-
-- Build a CLI scaffolder (`create-vertex-site`).
-- Stand up an `@vertex/*` npm package monorepo.
-- Refactor any spoke yet — the hub is the foundation; spokes migrate one at a time.
-- Wire up Lighthouse CI on every spoke — it ships in `templates/spoke/lighthouserc.json` for when you want it.
+- ❌ Copy template files into every spoke. The audit drives per-spoke changes; bulk copy is wrong.
+- ❌ Stand up an `@vertex/*` npm monorepo. Future option, not a requirement.
+- ❌ Build a `create-vertex-site` CLI yet. The audit prompt + hub URL is the workflow.
+- ❌ Migrate spokes before auditing them. Audit first, then prioritize from the punch list.
 
 ---
 
 ## Troubleshooting
 
-**"Propagate to spokes" workflow fails with `Resource not accessible`** → the `HUB_DISPATCH_TOKEN` PAT doesn't have the right repo access. Re-issue with the exact 5 spoke repos selected.
+**Audit prompt fails to fetch hub files** → Confirm hub repo is public OR Claude has network access to the raw URLs. If fetching `_scaffold-spec.md` fails, the audit can't proceed. Most likely cause: typo in the hub URL.
 
-**Spoke's `sync-from-hub.yml` runs but no PR appears** → that's correct if no synced file changed. PRs only open on actual diffs. Force a change by editing `config/network.json` again.
+**Auto-sync `Propagate to spokes` fails with `Resource not accessible`** → `HUB_DISPATCH_TOKEN` PAT doesn't have access to the target repo. Re-issue with the right repo selection.
 
-**`uses: ThatMovieGuyOriginal/vertex-network-hub/.github/workflows/spoke-ci.yml@v1` fails** → you skipped Step 4 (tagging `v1`). Run `git tag v1 && git push origin v1`.
+**Spoke `sync-from-hub.yml` runs but no PR appears** → Correct if no synced file changed. Force a hub change to test.
 
-**The PR auto-merge label doesn't actually auto-merge** → that's by design (no `auto-merge.yml` ships yet). Add one later, or merge by hand. The label is just for filtering.
+**`uses: ThatMovieGuyOriginal/vertex-network-hub/.github/workflows/spoke-ci.yml@v1` fails** → Confirm `v1` tag exists at https://github.com/ThatMovieGuyOriginal/vertex-network-hub/tags (it should — it was tagged at hub init).
