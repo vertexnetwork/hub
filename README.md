@@ -1,4 +1,4 @@
-# Hub
+# The Vertex Network Hub
 
 Source of truth for the **Vertex Network** — a hub-and-spoke architecture across an indie portfolio of tool sites.
 
